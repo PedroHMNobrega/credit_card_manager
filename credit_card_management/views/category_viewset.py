@@ -8,7 +8,6 @@ from credit_card_management.models import Category
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
     serializer_class = CategorySerializer
     http_method_names = ['get', 'post', 'delete']
     authentication_classes = [BasicAuthentication]
@@ -22,3 +21,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
         response = Response(serializer.data, status=status.HTTP_201_CREATED)
         return response
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Category.objects.filter(user_id=user.id)
+        return queryset
