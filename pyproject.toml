@@ -10,6 +10,7 @@ packages = [{include = "setup"}]
 python = "^3.8"
 django = "^4.1.5"
 djangorestframework = "^3.14.0"
+python-dateutil = "^2.8.2"
 
 
 [build-system]

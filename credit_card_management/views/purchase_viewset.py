@@ -1,8 +1,10 @@
+from django.db import transaction
 from rest_framework import viewsets, status
-from credit_card_management.serializers import PurchaseSerializer
+from credit_card_management.serializers import PurchaseSerializer, InstallmentSerializer
 from credit_card_management.models import Purchase, Category
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
+from dateutil.relativedelta import relativedelta
 
 
 class PurchaseViewSet(viewsets.ModelViewSet):
@@ -10,13 +12,38 @@ class PurchaseViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'delete']
 
     def create(self, request, *args, **kwargs):
-        self.validate_category()
+        with transaction.atomic():
+            self.validate_category()
 
-        user = request.user
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(user=user)
-        response = Response(serializer.data, status=status.HTTP_201_CREATED)
+            user = request.user
+
+            serializer = self.serializer_class(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            purchase = serializer.save(user=user)
+            first_installment_value = purchase.get_first_installment_value
+            other_installment_value = purchase.get_installment_value
+            installment_date = purchase.firstInstallmentDate
+
+            for installment_number in range(1, purchase.installmentsNumber+1):
+                installment_value = other_installment_value
+                if installment_number == 1:
+                    installment_value = first_installment_value
+
+                installment = {
+                    'user': user,
+                    'purchase': purchase.id,
+                    'number': installment_number,
+                    'value_paid': installment_value,
+                    'date': installment_date
+                }
+
+                installment_serializer = InstallmentSerializer(data=installment)
+                installment_serializer.is_valid(raise_exception=True)
+                installment_serializer.save(user=user)
+
+                installment_date += relativedelta(months=1)
+
+            response = Response(serializer.data, status=status.HTTP_201_CREATED)
         return response
 
     def get_queryset(self):
