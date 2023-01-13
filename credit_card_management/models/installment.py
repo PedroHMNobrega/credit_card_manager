@@ -13,4 +13,4 @@ class Installment(models.Model):
     paid = models.BooleanField(default=False, blank=True, null=True)
 
     def __str__(self):
-        return f'${self.purchase.name} - ${self.number}/${self.purchase.installmentsNumber}'
+        return f'{self.purchase.name} - {self.number}/{self.purchase.installmentsNumber}'
