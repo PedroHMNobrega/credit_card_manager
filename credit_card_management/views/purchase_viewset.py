@@ -16,32 +16,10 @@ class PurchaseViewSet(viewsets.ModelViewSet):
             self.validate_category()
 
             user = request.user
-
             serializer = self.serializer_class(data=request.data)
             serializer.is_valid(raise_exception=True)
             purchase = serializer.save(user=user)
-            first_installment_value = purchase.get_first_installment_value
-            other_installment_value = purchase.get_installment_value
-            installment_date = purchase.firstInstallmentDate
-
-            for installment_number in range(1, purchase.installmentsNumber+1):
-                installment_value = other_installment_value
-                if installment_number == 1:
-                    installment_value = first_installment_value
-
-                installment = {
-                    'user': user,
-                    'purchase': purchase.id,
-                    'number': installment_number,
-                    'value_paid': installment_value,
-                    'date': installment_date
-                }
-
-                installment_serializer = InstallmentSerializer(data=installment)
-                installment_serializer.is_valid(raise_exception=True)
-                installment_serializer.save(user=user)
-
-                installment_date += relativedelta(months=1)
+            self.create_installments(purchase)
 
             response = Response(serializer.data, status=status.HTTP_201_CREATED)
         return response
@@ -59,3 +37,27 @@ class PurchaseViewSet(viewsets.ModelViewSet):
         category = Category.objects.filter(pk=self.request.data['category'], user=user.id)
         if len(category) != 1:
             raise ValidationError({'category': "Category does not exist"})
+
+    def create_installments(self, purchase):
+        user = self.request.user
+        first_installment_value = purchase.get_first_installment_value
+        other_installment_value = purchase.get_installment_value
+        installment_date = purchase.firstInstallmentDate
+
+        for installment_number in range(1, purchase.installmentsNumber + 1):
+            installment_value = other_installment_value
+            if installment_number == 1:
+                installment_value = first_installment_value
+
+            installment = {
+                'purchase': purchase.id,
+                'number': installment_number,
+                'value_paid': installment_value,
+                'date': installment_date
+            }
+
+            installment_serializer = InstallmentSerializer(data=installment)
+            installment_serializer.is_valid(raise_exception=True)
+            installment_serializer.save(user=user)
+
+            installment_date += relativedelta(months=1)
