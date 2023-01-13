@@ -1,6 +1,4 @@
 from rest_framework import viewsets, status
-from rest_framework.authentication import BasicAuthentication
-from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
 from rest_framework.response import Response
 
 from credit_card_management.serializers import CategorySerializer
@@ -10,8 +8,6 @@ from credit_card_management.models import Category
 class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     http_method_names = ['get', 'post', 'delete']
-    authentication_classes = [BasicAuthentication]
-    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def create(self, request, *args, **kwargs):
         user = request.user

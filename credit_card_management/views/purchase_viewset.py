@@ -1,7 +1,5 @@
 from rest_framework import viewsets, status
 from credit_card_management.serializers import PurchaseSerializer
-from rest_framework.authentication import BasicAuthentication
-from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
 from credit_card_management.models import Purchase, Category
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
@@ -10,8 +8,6 @@ from rest_framework.exceptions import ValidationError
 class PurchaseViewSet(viewsets.ModelViewSet):
     serializer_class = PurchaseSerializer
     http_method_names = ['get', 'put', 'post', 'delete']
-    authentication_classes = [BasicAuthentication]
-    permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def create(self, request, *args, **kwargs):
         self.validate_category()
