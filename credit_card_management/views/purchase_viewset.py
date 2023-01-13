@@ -14,8 +14,7 @@ class PurchaseViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, DjangoModelPermissions]
 
     def create(self, request, *args, **kwargs):
-        if not self.valid_category():
-            raise ValidationError({'category': "Category does not exist"})
+        self.validate_category()
 
         user = request.user
         serializer = self.serializer_class(data=request.data)
@@ -25,20 +24,19 @@ class PurchaseViewSet(viewsets.ModelViewSet):
         return response
 
     def perform_update(self, serializer):
-        if self.valid_category():
-            serializer.save()
-        else:
-            raise ValidationError({'category': "Category does not exist"})
+        self.validate_category()
+        serializer.save()
 
     def get_queryset(self):
         user = self.request.user
         queryset = Purchase.objects.filter(user_id=user.id)
         return queryset
 
-    def valid_category(self):
+    def validate_category(self):
         if 'category' not in self.request.data.keys():
             return True
 
         user = self.request.user
         category = Category.objects.filter(pk=self.request.data['category'], user=user.id)
-        return len(category) == 1
+        if len(category) != 1:
+            raise ValidationError({'category': "Category does not exist"})
