@@ -7,7 +7,7 @@ from rest_framework.exceptions import ValidationError
 
 class PurchaseViewSet(viewsets.ModelViewSet):
     serializer_class = PurchaseSerializer
-    http_method_names = ['get', 'put', 'post', 'delete']
+    http_method_names = ['get', 'post', 'delete']
 
     def create(self, request, *args, **kwargs):
         self.validate_category()
@@ -18,10 +18,6 @@ class PurchaseViewSet(viewsets.ModelViewSet):
         serializer.save(user=user)
         response = Response(serializer.data, status=status.HTTP_201_CREATED)
         return response
-
-    def perform_update(self, serializer):
-        self.validate_category()
-        serializer.save()
 
     def get_queryset(self):
         user = self.request.user
