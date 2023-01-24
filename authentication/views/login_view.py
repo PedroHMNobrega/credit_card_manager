@@ -1,4 +1,4 @@
-from rest_framework import views
+from rest_framework import views, status
 from django.contrib.auth import authenticate
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -17,4 +17,4 @@ class LoginView(views.APIView):
             token = create_jwt(user)
             return Response({'accessToken': token})
         else:
-            return Response({"error": "Invalid credentials"}, status=400)
+            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
