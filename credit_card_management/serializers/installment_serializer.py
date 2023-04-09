@@ -4,6 +4,12 @@ from credit_card_management.serializers import PurchaseSerializer
 
 
 class InstallmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Installment
+        fields = ['id', 'purchase', 'number', 'value_paid', 'date', 'paid']
+
+
+class ListInstallmentSerializer(serializers.ModelSerializer):
     purchase = PurchaseSerializer()
     category = serializers.CharField(source='purchase.category')
 

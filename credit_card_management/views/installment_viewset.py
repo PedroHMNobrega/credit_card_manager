@@ -1,13 +1,18 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, ValidationError
-from credit_card_management.serializers import InstallmentSerializer
+from credit_card_management.serializers import InstallmentSerializer, ListInstallmentSerializer
 from credit_card_management.models import Installment
 
 
 class InstallmentViewSet(viewsets.ModelViewSet):
-    serializer_class = InstallmentSerializer
     http_method_names = ['get', 'put']
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ListInstallmentSerializer
+        else:
+            return InstallmentSerializer
 
     def get_queryset(self):
         user = self.request.user
