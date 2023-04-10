@@ -16,7 +16,15 @@ class InstallmentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+
+        month = self.request.query_params.get('month')
+        year = self.request.query_params.get('year')
+
         queryset = Installment.objects.filter(user_id=user.id)
+
+        if month and year:
+            queryset = queryset.filter(date__month=month, date__year=year)
+
         return queryset
 
     def update(self, request, *args, **kwargs):
