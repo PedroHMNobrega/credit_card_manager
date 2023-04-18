@@ -12,6 +12,8 @@ class Purchase(models.Model):
     value = models.DecimalField(max_digits=12, decimal_places=2, blank=False, null=False)
     category = models.ForeignKey(Category, on_delete=models.SET_DEFAULT, default=None, blank=True, null=True)
     firstInstallmentDate = models.DateField(default=date.today, blank=True)
+    installments_paid = models.IntegerField(blank=False, null=False, default=0)
+    value_paid = models.DecimalField(max_digits=12, decimal_places=2, blank=False, null=False, default=0)
 
     def __str__(self):
         return self.name
