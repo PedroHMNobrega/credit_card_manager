@@ -1,3 +1,6 @@
+import decimal
+
+from django.db.transaction import atomic
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, ValidationError
@@ -27,6 +30,7 @@ class InstallmentViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    @atomic
     def update(self, request, *args, **kwargs):
         try:
             user = request.user
@@ -34,10 +38,17 @@ class InstallmentViewSet(viewsets.ModelViewSet):
 
             installment = Installment.objects.get(pk=installment_id, user=user.id)
 
+            if installment.paid == request.data['paid']:
+                raise KeyError
+
             installment.paid = request.data['paid']
-            installment.value_paid = request.data['value_paid']
+
+            if installment.paid:
+                installment.value_paid = request.data['value_paid']
 
             installment.save()
+
+            self.update_purchase(installment)
 
             serializer = InstallmentSerializer(installment)
 
@@ -46,3 +57,17 @@ class InstallmentViewSet(viewsets.ModelViewSet):
             raise ValidationError({'detail': 'Invalid input.'})
         except:
             raise NotFound()
+
+    def update_purchase(self, installment):
+        paid = installment.paid
+        value_paid = decimal.Decimal(installment.value_paid)
+        purchase = installment.purchase
+
+        if paid:
+            purchase.installments_paid += 1
+            purchase.value_paid += value_paid
+        else:
+            purchase.installments_paid -= 1
+            purchase.value_paid -= value_paid
+
+        purchase.save()
